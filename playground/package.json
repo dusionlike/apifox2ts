@@ -1,0 +1,16 @@
+{
+  "name": "playground",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "gen": "apifox2ts"
+  },
+  "devDependencies": {
+    "apifox2ts": "../"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

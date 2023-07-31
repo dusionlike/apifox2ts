@@ -1,0 +1,7 @@
+lockfileVersion: 5.4
+
+specifiers:
+  apifox2ts: ../
+
+devDependencies:
+  apifox2ts: link:..

@@ -1,0 +1,50 @@
+{
+  "name": "apifox2ts",
+  "version": "0.0.6",
+  "description": "apifox to typescript",
+  "keywords": [
+    "apifox",
+    "typescript",
+    "openapi",
+    "generator"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/dusionlike/apifox2ts#readme",
+  "bugs": "https://github.com/dusionlike/apifox2ts/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dusionlike/apifox2ts.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "apifox2ts": "dist/cli.js"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "pnpm run lint --fix",
+    "dev": "tsup --watch",
+    "build": "tsup --clean",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "unconfig": "^0.3.10"
+  },
+  "devDependencies": {
+    "@sxzz/eslint-config": "^2.4.4",
+    "@types/node": "^20.4.4",
+    "eslint": "^8.25.0",
+    "eslint-define-config": "^1.7.0",
+    "prettier": "^2.7.1",
+    "tsup": "^7.1.0",
+    "typescript": "^5.1.6",
+    "vitest": "^0.33.0"
+  },
+  "engines": {
+    "node": ">=16.14.0"
+  }
+}
