@@ -1,6 +1,6 @@
 {
   "name": "apifox2ts",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "apifox to typescript",
   "keywords": [
     "apifox",
@@ -9,12 +9,6 @@
     "generator"
   ],
   "license": "MIT",
-  "homepage": "https://github.com/dusionlike/apifox2ts#readme",
-  "bugs": "https://github.com/dusionlike/apifox2ts/issues",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/dusionlike/apifox2ts.git"
-  },
   "files": [
     "dist"
   ],
