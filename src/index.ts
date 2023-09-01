@@ -159,10 +159,13 @@ function openapi2tsCode(
 
   // 请求参数类型
   let requestType = ''
-  if (pData.parameters && pData.parameters.length > 0) {
+  const parameters = (pData.parameters || []).filter(
+    item => item.in === 'query'
+  )
+  if (parameters.length > 0) {
     requestType = `IRequestParams${name}`
     textLines.push(`export interface ${requestType} {`)
-    for (const param of pData.parameters) {
+    for (const param of parameters) {
       // 注释
       if (param.description) {
         textLines.push(`  /** ${param.description} */`)
