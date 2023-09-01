@@ -175,20 +175,27 @@ function openapi2tsCode(
     }
     textLines.push('}', '')
   } else if (pData.requestBody) {
-    const bodySchema = pData.requestBody.content['application/json'].schema
+    if (pData.requestBody.content['application/json']) {
+      const bodySchema = pData.requestBody.content['application/json'].schema
 
-    if (bodySchema) {
-      requestType = `IRequestBody${name}`
-      textLines.push(`export interface ${requestType} {`)
-      renderSchema(bodySchema)
-      textLines.push('}', '')
+      if (bodySchema) {
+        requestType = `IRequestBody${name}`
+        textLines.push(`export interface ${requestType} {`)
+        renderSchema(bodySchema)
+        textLines.push('}', '')
+      }
+    } else if (pData.requestBody.content['multipart/form-data']) {
+      requestType = 'FormData'
+    } else {
+      const key = Object.keys(pData.requestBody.content)[0]
+      console.warn(`no support content type: ${key}`)
     }
   }
 
   // 返回结果类型
   const responseType = `IResponseData${name}`
   const responseSchema =
-    pData.responses['200'].content?.['application/json'].schema
+    pData.responses['200'].content?.['application/json']?.schema
 
   if (responseSchema) {
     textLines.push(`export interface ${responseType} {`)
