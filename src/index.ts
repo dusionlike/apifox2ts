@@ -2,6 +2,7 @@ import http from 'node:http'
 import https from 'node:https'
 import fs from 'node:fs'
 import path from 'node:path'
+import { type Apifox2tsConfigBase } from './config'
 import type { OpenAPIV3 } from './types/openai'
 
 export { type Apifox2tsConfig, defineConfig } from './config'
@@ -12,7 +13,11 @@ export { request, overrideFetch } from './request'
  * @param sourceURL api数据地址，可以是http/https地址，也可以是本地文件路径
  * @param destPath 生成的ts文件路径
  */
-export async function apifox2ts(sourceURL: string, destPath: string) {
+export async function apifox2ts(
+  sourceURL: string,
+  destPath: string,
+  config: Apifox2tsConfigBase
+) {
   const apiData = await getApiData(sourceURL)
   let fileText = ''
 
@@ -26,7 +31,7 @@ export async function apifox2ts(sourceURL: string, destPath: string) {
       const method = Object.keys(pathData)[0] as OpenAPIV3.HttpMethods
       const pData = pathData[method]
       if (pData) {
-        fileText += openapi2tsCode(pData, pathKey, method)
+        fileText += openapi2tsCode(pData, pathKey, method, config.ignoreKeys)
       }
     }
   }
@@ -106,7 +111,8 @@ function openapi2tsHeader(apiData: OpenAPIV3.Document) {
 function openapi2tsCode(
   pData: OpenAPIV3.OperationObject,
   url: string,
-  method: string
+  method: string,
+  ignoreKeys?: string[]
 ) {
   const name = path2name(url)
 
@@ -116,6 +122,10 @@ function openapi2tsCode(
     if (schema && schema.properties) {
       for (const key of Object.keys(schema.properties)) {
         const prop = schema.properties[key]
+
+        if (ignoreKeys?.includes(key)) {
+          continue
+        }
 
         // 注释
         if (prop.description) {

@@ -6,6 +6,7 @@ export interface Apifox2tsConfigBase {
   sourceURL: string
   name?: string
   destDir?: string
+  ignoreKeys?: string[]
 }
 
 export function defineConfig(config: Apifox2tsConfig) {

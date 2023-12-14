@@ -21,7 +21,7 @@ async function run() {
   for (const item of configList) {
     const { sourceURL, destDir = 'src/api', name } = item
     const destPath = path.join(destDir, name ? `${name}.ts` : 'index.ts')
-    await apifox2ts(sourceURL, destPath)
+    await apifox2ts(sourceURL, destPath, item)
   }
 }
 
