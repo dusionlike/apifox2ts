@@ -170,7 +170,7 @@ function openapi2tsCode(
   // 请求参数类型
   let requestType = ''
   const parameters = (pData.parameters || []).filter(
-    item => item.in === 'query'
+    item => item.in === 'query' && !ignoreKeys?.includes(item.name)
   )
   if (parameters.length > 0) {
     requestType = `IRequestParams${name}`
