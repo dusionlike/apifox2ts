@@ -23,7 +23,7 @@
     "lint:fix": "pnpm run lint --fix",
     "dev": "tsup --watch",
     "build": "tsup --clean",
-    "test": "vitest"
+    "publish": "bumpp"
   },
   "dependencies": {
     "unconfig": "^0.3.10"
@@ -31,6 +31,7 @@
   "devDependencies": {
     "@sxzz/eslint-config": "^2.4.4",
     "@types/node": "^20.4.4",
+    "bumpp": "^10.2.0",
     "eslint": "^8.25.0",
     "eslint-define-config": "^1.7.0",
     "prettier": "^2.7.1",
