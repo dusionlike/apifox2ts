@@ -253,15 +253,17 @@ function openapi2tsCode(
 }
 
 /**
- * 将路由转换成接口名称，去掉斜杠，首字母大写
+ * 将路由转换成接口名称，去掉斜杠，首字母大写，处理连字符转驼峰命名
  */
 function path2name(path: string) {
   const list = path
     .split('/')
     .filter(Boolean)
     .map(item => {
+      // 处理连字符，转换为驼峰命名
+      const camelCaseItem = item.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())
       // 首字母大写
-      return item.replace(/^\S/, s => s.toUpperCase())
+      return camelCaseItem.replace(/^\S/, s => s.toUpperCase())
     })
   return list.join('')
 }

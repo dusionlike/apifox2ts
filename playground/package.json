@@ -8,7 +8,7 @@
     "gen": "apifox2ts"
   },
   "devDependencies": {
-    "apifox2ts": "../"
+    "apifox2ts": "link:.."
   },
   "keywords": [],
   "author": "",
