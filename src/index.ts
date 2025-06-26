@@ -31,7 +31,7 @@ export async function apifox2ts(
       const method = Object.keys(pathData)[0] as OpenAPIV3.HttpMethods
       const pData = pathData[method]
       if (pData) {
-        fileText += openapi2tsCode(pData, pathKey, method, config.ignoreKeys)
+        fileText += openapi2tsCode(pData, pathKey, method, apiData, config.ignoreKeys)
       }
     }
   }
@@ -106,61 +106,128 @@ function openapi2tsHeader(apiData: OpenAPIV3.Document) {
 }
 
 /**
+ * 解析 $ref 引用，获取真实的 schema 对象
+ */
+function resolveRef(ref: string, apiData: OpenAPIV3.Document): OpenAPIV3.SchemaObject | null {
+  // 处理 #/components/schemas/ModelName 格式的引用
+  if (ref.startsWith('#/')) {
+    const parts = ref.substring(2).split('/')
+    let current: any = apiData
+    
+    for (const part of parts) {
+      if (current && typeof current === 'object' && part in current) {
+        current = current[part]
+      } else {
+        console.warn(`Cannot resolve reference: ${ref}`)
+        return null
+      }
+    }
+    
+    return current as OpenAPIV3.SchemaObject
+  }
+  
+  console.warn(`Unsupported reference format: ${ref}`)
+  return null
+}
+
+/**
+ * 检查对象是否是引用对象
+ */
+function isReferenceObject(obj: any): obj is OpenAPIV3.ReferenceObject {
+  return obj && typeof obj === 'object' && '$ref' in obj
+}
+
+/**
+ * 解析 schema，如果是引用则解析引用
+ */
+function resolveSchema(schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject, apiData: OpenAPIV3.Document): OpenAPIV3.SchemaObject | null {
+  if (isReferenceObject(schema)) {
+    return resolveRef(schema.$ref, apiData)
+  }
+  return schema as OpenAPIV3.SchemaObject
+}
+
+/**
  * 将openapi数据转换为typescript代码，组装接口代码
  */
 function openapi2tsCode(
   pData: OpenAPIV3.OperationObject,
   url: string,
   method: string,
+  apiData: OpenAPIV3.Document,
   ignoreKeys?: string[]
 ) {
   const name = path2name(url)
 
   const textLines: string[] = ['']
 
-  const renderSchema = (schema: OpenAPIV3.SchemaObject, level = 1) => {
-    if (schema && schema.properties) {
-      for (const key of Object.keys(schema.properties)) {
-        const prop = schema.properties[key]
+  const renderSchema = (schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject, level = 1) => {
+    // 解析引用
+    const resolvedSchema = resolveSchema(schema, apiData)
+    if (!resolvedSchema) {
+      return
+    }
+
+    if (resolvedSchema && resolvedSchema.properties) {
+      for (const key of Object.keys(resolvedSchema.properties)) {
+        const prop = resolvedSchema.properties[key]
 
         if (ignoreKeys?.includes(key)) {
           continue
         }
 
-        // 注释
-        if (prop.description) {
-          textLines.push(`${getSpace(level * 2)}/** ${prop.description} */`)
+        // 如果 prop 是引用对象，需要解析
+        const resolvedProp = isReferenceObject(prop) ? resolveSchema(prop, apiData) : prop
+        if (!resolvedProp) {
+          continue
         }
 
-        if (prop.type === 'object') {
+        // 注释
+        if (resolvedProp.description) {
+          textLines.push(`${getSpace(level * 2)}/** ${resolvedProp.description} */`)
+        }
+
+        if (resolvedProp.type === 'object') {
           textLines.push(
             `${getSpace(level * 2)}${key}${
-              schema.required?.includes(key) ? '' : '?'
+              resolvedSchema.required?.includes(key) ? '' : '?'
             }: {`
           )
-          renderSchema(prop, level + 1)
+          renderSchema(resolvedProp, level + 1)
           textLines.push(`${getSpace(level * 2)}}`)
-        } else if (prop.type === 'array') {
-          if (prop.items.type === 'object') {
-            textLines.push(
-              `${getSpace(level * 2)}${key}${
-                schema.required?.includes(key) ? '' : '?'
-              }: {`
-            )
-            renderSchema(prop.items, level + 1)
-            textLines.push(`${getSpace(level * 2)}}[]`)
+        } else if (resolvedProp.type === 'array') {
+          if (resolvedProp.items) {
+            const resolvedItems = isReferenceObject(resolvedProp.items) 
+              ? resolveSchema(resolvedProp.items, apiData) 
+              : resolvedProp.items
+            
+            if (resolvedItems && resolvedItems.type === 'object') {
+              textLines.push(
+                `${getSpace(level * 2)}${key}${
+                  resolvedSchema.required?.includes(key) ? '' : '?'
+                }: {`
+              )
+              renderSchema(resolvedItems, level + 1)
+              textLines.push(`${getSpace(level * 2)}}[]`)
+            } else {
+              textLines.push(
+                `${getSpace(level * 2)}${key}${
+                  resolvedSchema.required?.includes(key) ? '' : '?'
+                }: ${resolvedItems?.type || 'unknown'}[]`
+              )
+            }
           } else {
             textLines.push(
               `${getSpace(level * 2)}${key}${
-                schema.required?.includes(key) ? '' : '?'
-              }: ${prop.items.type || 'unknown'}[]`
+                resolvedSchema.required?.includes(key) ? '' : '?'
+              }: unknown[]`
             )
           }
         } else {
           textLines.push(
             `${getSpace(level * 2)}${key}${
-              schema.required?.includes(key) ? '' : '?'
-            }: ${prop.type || 'unknown'}`
+              resolvedSchema.required?.includes(key) ? '' : '?'
+            }: ${resolvedProp.type || 'unknown'}`
           )
         }
       }
@@ -192,10 +259,13 @@ function openapi2tsCode(
       const bodySchema = pData.requestBody.content['application/json'].schema
 
       if (bodySchema) {
-        requestType = `IRequestBody${name}`
-        textLines.push(`export interface ${requestType} {`)
-        renderSchema(bodySchema)
-        textLines.push('}', '')
+        const resolvedBodySchema = resolveSchema(bodySchema, apiData)
+        if (resolvedBodySchema) {
+          requestType = `IRequestBody${name}`
+          textLines.push(`export interface ${requestType} {`)
+          renderSchema(bodySchema)
+          textLines.push('}', '')
+        }
       }
     } else if (pData.requestBody.content['multipart/form-data']) {
       requestType = 'FormData'
@@ -211,9 +281,12 @@ function openapi2tsCode(
     pData.responses['200'].content?.['application/json']?.schema
 
   if (responseSchema) {
-    textLines.push(`export interface ${responseType} {`)
-    renderSchema(responseSchema)
-    textLines.push('}', '')
+    const resolvedResponseSchema = resolveSchema(responseSchema, apiData)
+    if (resolvedResponseSchema) {
+      textLines.push(`export interface ${responseType} {`)
+      renderSchema(responseSchema)
+      textLines.push('}', '')
+    }
   }
 
   // 接口函数注释
