@@ -35,7 +35,7 @@
     "lint:fix": "pnpm run lint --fix",
     "dev": "tsup --watch",
     "build": "tsup --clean",
-    "publish": "bumpp"
+    "release": "bumpp && npm publish"
   },
   "dependencies": {
     "unconfig": "^0.3.10"
