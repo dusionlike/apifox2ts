@@ -23,7 +23,7 @@ export async function apifox2ts(
 
   fileText += openapi2tsHeader(apiData)
 
-  fileText += "\nimport { request } from 'apifox2ts'\n"
+  fileText += "\nimport { request } from 'apifox2ts/request'\n"
 
   for (const pathKey of Object.keys(apiData.paths)) {
     const pathData = apiData.paths[pathKey]
