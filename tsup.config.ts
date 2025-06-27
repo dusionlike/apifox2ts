@@ -16,4 +16,12 @@ export default defineConfig([
     platform: 'node',
     bundle: false,
   },
+  {
+    entry: ['./src/request.ts'],
+    format: ['cjs', 'esm'],
+    target: 'es2020',
+    dts: true,
+    platform: 'neutral',
+    outDir: 'dist',
+  },
 ])
