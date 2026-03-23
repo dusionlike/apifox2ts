@@ -10,15 +10,15 @@ export { request, overrideFetch } from './request'
 
 /**
  * 将apifox的api数据转换为typescript代码
- * @param sourceURL api数据地址，可以是http/https地址，也可以是本地文件路径
+ * @param source api数据地址，可以是http/https地址，也可以是本地文件路径
  * @param destPath 生成的ts文件路径
  */
 export async function apifox2ts(
-  sourceURL: string,
+  source: string,
   destPath: string,
   config: Apifox2tsConfigBase
 ) {
-  const apiData = await getApiData(sourceURL)
+  const apiData = await getApiData(source)
   let fileText = ''
 
   fileText += openapi2tsHeader(apiData)
@@ -43,16 +43,16 @@ export async function apifox2ts(
   await fs.promises.writeFile(destFilePath, fileText, 'utf-8')
 }
 
-async function getApiData(sourceURL: string): Promise<OpenAPIV3.Document> {
-  if (sourceURL.startsWith('http') || sourceURL.startsWith('https')) {
-    const resStr = await getJson(sourceURL)
+async function getApiData(source: string): Promise<OpenAPIV3.Document> {
+  if (source.startsWith('http://') || source.startsWith('https://')) {
+    const resStr = await getJson(source)
     return JSON.parse(resStr)
   }
-  if (fs.existsSync(sourceURL)) {
-    const resStr = await fs.promises.readFile(sourceURL, 'utf-8')
+  if (fs.existsSync(source)) {
+    const resStr = await fs.promises.readFile(source, 'utf-8')
     return JSON.parse(resStr)
   }
-  throw new Error('sourceURL is not a valid url or file path')
+  throw new Error('source is not a valid url or file path')
 }
 
 /**

@@ -32,9 +32,21 @@ export default defineConfig({
 })
 ```
 
-- `sourceURL` 可以是本地路径，也可以是http地址，在apifox的`项目概览`=>`代码生成`=>`OpenAPI 格式 URL` 复制那个地址
+- `sourceURL` 用于读取远程 OpenAPI 地址，在 apifox 的`项目概览`=>`代码生成`=>`OpenAPI 格式 URL` 复制那个地址
+- `sourcePath` 用于读取本地 OpenAPI JSON 文件路径
+- `sourceURL` 和 `sourcePath` 二选一，不能同时配置
 - `destDir` 生成代码的路径，默认为 `src/api`
 - `name` 生成代码的文件名，默认为 `index`，当配置为数组时，`name` 为必填
+
+本地文件示例：
+
+```ts
+import { defineConfig } from 'apifox2ts'
+
+export default defineConfig({
+  sourcePath: './openapi.json',
+})
+```
 
 ### 使用
 

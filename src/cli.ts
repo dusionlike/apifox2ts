@@ -2,7 +2,17 @@
 import path from 'node:path'
 import { loadConfig } from 'unconfig'
 import { apifox2ts } from '.'
-import type { Apifox2tsConfig } from './config'
+import type { Apifox2tsConfig, Apifox2tsConfigBase } from './config'
+
+function getSource(config: Apifox2tsConfigBase) {
+  const { sourceURL, sourcePath } = config
+
+  if (!sourceURL || !sourcePath) {
+    throw new Error('sourceURL or sourcePath is required in config')
+  }
+
+  return sourceURL || sourcePath
+}
 
 async function run() {
   const { config } = await loadConfig<Apifox2tsConfig | undefined>({
@@ -19,9 +29,9 @@ async function run() {
   const configList = Array.isArray(config) ? config : [config]
 
   for (const item of configList) {
-    const { sourceURL, destDir = 'src/api', name } = item
+    const { destDir = 'src/api', name } = item
     const destPath = path.join(destDir, name ? `${name}.ts` : 'index.ts')
-    await apifox2ts(sourceURL, destPath, item)
+    await apifox2ts(getSource(item), destPath, item)
   }
 }
 
