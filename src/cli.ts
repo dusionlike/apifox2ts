@@ -7,11 +7,13 @@ import type { Apifox2tsConfig, Apifox2tsConfigBase } from './config'
 function getSource(config: Apifox2tsConfigBase) {
   const { sourceURL, sourcePath } = config
 
-  if (!sourceURL || !sourcePath) {
+  const source = sourceURL || sourcePath
+
+  if (!source) {
     throw new Error('sourceURL or sourcePath is required in config')
   }
 
-  return sourceURL || sourcePath
+  return source
 }
 
 async function run() {
